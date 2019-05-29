@@ -10,6 +10,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.channels.Channel.Factory.DEFAULT
+import kotlinx.coroutines.internal.systemProp
 import kotlinx.coroutines.selects.*
 import kotlin.jvm.*
 
@@ -372,20 +374,42 @@ public interface Channel<E> : SendChannel<E>, ReceiveChannel<E> {
          * Requests conflated channel in `Channel(...)` factory function -- the `ConflatedChannel` gets created.
          */
         public const val CONFLATED = -1
+
+        /**
+         * Requests default channel capacity in `Channel(...)` factory function.
+         * This capacity is equal to 16 by default and can be overridden by setting
+         * [DEFAULT_CAPACITY_PROPERTY_NAME] on JVM.
+         */
+        public const val DEFAULT = -2
+
+        // only for internal use, cannot be used with Channel(...)
+        internal const val OPTIONAL_CHANNEL = -3
+
+        /**
+         * Name of the property that defines the default channel capacity when
+         * [DEFAULT] is used as parameter in `Channel(...)` factory function.
+         */
+        public const val DEFAULT_CAPACITY_PROPERTY_NAME = "kotlinx.coroutines.channels.defaultCapacity"
     }
 }
+
+internal val CHANNEL_DEFAULT_CAPACITY = systemProp(Channel.DEFAULT_CAPACITY_PROPERTY_NAME,
+    16, 1, UNLIMITED - 1
+)
 
 /**
  * Creates a channel with the specified buffer capacity (or without a buffer by default).
  * See [Channel] interface documentation for details.
  *
- * @throws IllegalArgumentException when [capacity] < -1
+ * @param capacity either a positive channel capacity or one of the constants defined in [Channel.Factory].
+ * @throws IllegalArgumentException when [capacity] < -2
  */
 public fun <E> Channel(capacity: Int = RENDEZVOUS): Channel<E> =
     when (capacity) {
         RENDEZVOUS -> RendezvousChannel()
         UNLIMITED -> LinkedListChannel()
         CONFLATED -> ConflatedChannel()
+        DEFAULT -> ArrayChannel(CHANNEL_DEFAULT_CAPACITY)
         else -> ArrayChannel(capacity)
     }
 

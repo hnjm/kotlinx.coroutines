@@ -21,20 +21,21 @@ class ChannelFlowTest : TestBase() {
 
     @Test
     fun testBuffer() = runTest {
-        val flow = channelFlow(bufferSize = 1) {
+        val flow = channelFlow {
             assertTrue(offer(1))
             assertTrue(offer(2))
             assertFalse(offer(3))
-        }
+        }.buffer(1)
         assertEquals(listOf(1, 2), flow.toList())
     }
 
+    // todo: this is pretty useless behavior
     @Test
     fun testConflated() = runTest {
-        val flow = channelFlow(bufferSize = Channel.CONFLATED) {
+        val flow = channelFlow {
             assertTrue(offer(1))
             assertTrue(offer(2))
-        }
+        }.buffer(Channel.CONFLATED)
         assertEquals(listOf(1), flow.toList())
     }
 

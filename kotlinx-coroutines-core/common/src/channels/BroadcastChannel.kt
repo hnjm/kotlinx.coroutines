@@ -8,6 +8,7 @@ package kotlinx.coroutines.channels
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.channels.Channel.Factory.DEFAULT
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 
 /**
@@ -50,9 +51,11 @@ public interface BroadcastChannel<E> : SendChannel<E> {
  * Creates a broadcast channel with the specified buffer capacity.
  *
  * The resulting channel type depends on the specified [capacity] parameter:
+ *
  * * when `capacity` positive, but less than [UNLIMITED] -- creates `ArrayBroadcastChannel` with a buffer of given capacity.
  *   **Note:** this channel looses all items that are send to it until the first subscriber appears;
  * * when `capacity` is [CONFLATED] -- creates [ConflatedBroadcastChannel] that conflates back-to-back sends;
+ * * when `capacity` is [DEFAULT] -- creates `ArrayBroadcastChannel` with default capacity.
  * * otherwise -- throws [IllegalArgumentException].
  *
  * **Note: This is an experimental api.** It may be changed in the future updates.
@@ -63,5 +66,6 @@ public fun <E> BroadcastChannel(capacity: Int): BroadcastChannel<E> =
         0 -> throw IllegalArgumentException("Unsupported 0 capacity for BroadcastChannel")
         UNLIMITED -> throw IllegalArgumentException("Unsupported UNLIMITED capacity for BroadcastChannel")
         CONFLATED -> ConflatedBroadcastChannel()
+        DEFAULT -> ArrayBroadcastChannel(CHANNEL_DEFAULT_CAPACITY)
         else -> ArrayBroadcastChannel(capacity)
     }

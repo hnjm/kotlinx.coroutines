@@ -104,10 +104,10 @@ public interface ActorScope<E> : CoroutineScope, ReceiveChannel<E> {
  * @param onCompletion optional completion handler for the actor coroutine (see [Job.invokeOnCompletion])
  * @param block the coroutine code.
  */
-@ObsoleteCoroutinesApi
+@ObsoleteCoroutinesApi // todo: Maybe make it MPP + experimental?
 public fun <E> CoroutineScope.actor(
     context: CoroutineContext = EmptyCoroutineContext,
-    capacity: Int = 0,
+    capacity: Int = 0, // todo: Maybe Channel.DEFAULT here?
     start: CoroutineStart = CoroutineStart.DEFAULT,
     onCompletion: CompletionHandler? = null,
     block: suspend ActorScope<E>.() -> Unit
